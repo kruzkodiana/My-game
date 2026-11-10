@@ -4514,6 +4514,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1b6e5124c9cf7f4eb25faac82847af6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  undoButton: {fileID: 595623189}
+  redoButton: {fileID: 1365103808}
 --- !u!114 &595623189
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10604,6 +10606,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1b6e5124c9cf7f4eb25faac82847af6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  undoButton: {fileID: 0}
+  redoButton: {fileID: 0}
 --- !u!114 &1365103808
 MonoBehaviour:
   m_ObjectHideFlags: 0
