@@ -65,6 +65,17 @@ public class VRConstructionController : MonoBehaviour
 
     private void Update()
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (Input.GetKeyDown(KeyCode.Z) && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
+        {
+            RoadBuilder.Core.History.UndoRedoManager.Instance.Undo();
+        }
+        else if (Input.GetKeyDown(KeyCode.Y) && (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)))
+        {
+            RoadBuilder.Core.History.UndoRedoManager.Instance.Redo();
+        }
+#endif
+
         if (buildManager == null || roadBuilder == null || buildManager.CurrentItem == null ||
             triggerAction == null || triggerAction.action == null || handTransform == null)
         {
@@ -262,9 +273,13 @@ public class VRConstructionController : MonoBehaviour
 
             spawnRotation *= Quaternion.Euler(0, singleRotationOffset, 0);
 
-            Instantiate(item.finalPrefab, spawnPoint, spawnRotation);
+            GameObject spawned = Instantiate(item.finalPrefab, spawnPoint, spawnRotation);
             singleRotationOffset = 0f;
             roadBuilder.ClearGhostRoad();
+
+            // Регистрируем создание объекта в системе отмены / повтора
+            RoadBuilder.Core.History.UndoRedoManager.Instance.RegisterCommand(
+                new RoadBuilder.Core.History.SpawnObjectCommand(spawned, item.itemName));
         }
     }
 

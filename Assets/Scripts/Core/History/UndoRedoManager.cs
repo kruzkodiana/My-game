@@ -8,17 +8,47 @@ namespace RoadBuilder.Core.History
     /// </summary>
     public class UndoRedoManager : MonoBehaviour, IHistoryManager
     {
-        public static UndoRedoManager Instance { get; private set; }
+        private static UndoRedoManager _instance;
+
+        public static UndoRedoManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = FindObjectOfType<UndoRedoManager>();
+                    if (_instance == null)
+                    {
+                        var go = new GameObject("[UndoRedoManager]");
+                        _instance = go.AddComponent<UndoRedoManager>();
+                    }
+                }
+                return _instance;
+            }
+            private set => _instance = value;
+        }
 
         [Header("Настройки истории")]
         [SerializeField] private int _historyLimit = HistoryStack.DefaultCapacity;
 
         private HistoryStack _historyStack;
 
-        public bool CanUndo => _historyStack != null && _historyStack.CanUndo;
-        public bool CanRedo => _historyStack != null && _historyStack.CanRedo;
-        public int UndoCount => _historyStack != null ? _historyStack.UndoCount : 0;
-        public int RedoCount => _historyStack != null ? _historyStack.RedoCount : 0;
+        public bool CanUndo => History.CanUndo;
+        public bool CanRedo => History.CanRedo;
+        public int UndoCount => History.UndoCount;
+        public int RedoCount => History.RedoCount;
+
+        private HistoryStack History
+        {
+            get
+            {
+                if (_historyStack == null)
+                {
+                    _historyStack = new HistoryStack(_historyLimit);
+                }
+                return _historyStack;
+            }
+        }
 
         public event Action<bool, bool> OnHistoryChanged;
         public event Action<IReversibleCommand> OnCommandExecuted;
@@ -27,14 +57,17 @@ namespace RoadBuilder.Core.History
 
         private void Awake()
         {
-            if (Instance != null && Instance != this)
+            if (_instance != null && _instance != this)
             {
                 Destroy(gameObject);
                 return;
             }
 
-            Instance = this;
-            _historyStack = new HistoryStack(_historyLimit);
+            _instance = this;
+            if (_historyStack == null)
+            {
+                _historyStack = new HistoryStack(_historyLimit);
+            }
         }
 
         /// <summary>
