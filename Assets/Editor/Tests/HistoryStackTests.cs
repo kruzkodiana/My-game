@@ -193,5 +193,41 @@ namespace RoadBuilder.Tests
                 GameObject.DestroyImmediate(go);
             }
         }
+
+        [Test]
+        public void Test_Stress_RapidUndoRedoCycles()
+        {
+            var stack = new HistoryStack(50);
+            var cmd = new MockCommand("StressTest");
+            stack.Push(cmd);
+
+            // Имитация быстрой серии из 1000 нажатий Undo/Redo
+            for (int i = 0; i < 1000; i++)
+            {
+                var undone = stack.PopUndo();
+                Assert.AreSame(cmd, undone);
+                var redone = stack.PopRedo();
+                Assert.AreSame(cmd, redone);
+            }
+
+            Assert.AreEqual(1, stack.UndoCount);
+            Assert.AreEqual(0, stack.RedoCount);
+            Assert.IsTrue(stack.CanUndo);
+            Assert.IsFalse(stack.CanRedo);
+        }
+
+        [Test]
+        public void Test_Capacity_55Items_Limit50()
+        {
+            var stack = new HistoryStack(50);
+            for (int i = 1; i <= 55; i++)
+            {
+                stack.Push(new MockCommand($"Item {i}"));
+            }
+
+            Assert.AreEqual(50, stack.UndoCount);
+            // Последний добавленный (55) должен быть на вершине Undo
+            Assert.AreEqual("Item 55", stack.PeekUndo().Description);
+        }
     }
 }
