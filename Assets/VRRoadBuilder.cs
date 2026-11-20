@@ -168,10 +168,10 @@ public class VRRoadBuilder : MonoBehaviour
         }
     }
 
-    public void BuildFinalRoad(List<Vector3> points, BuildableItem item)
+    public GameObject BuildFinalRoad(List<Vector3> points, BuildableItem item)
     {
         ClearGhostRoad();
-        if (points.Count < 2 || item.finalPrefab == null) return;
+        if (points.Count < 2 || item.finalPrefab == null) return null;
 
         GameObject container = new GameObject("Built_" + item.itemName);
 
@@ -182,23 +182,30 @@ public class VRRoadBuilder : MonoBehaviour
             if (!item.snapToTerrain && item.generatePillars)
                 SpawnPillarsAlongSpan(points[0], points[points.Count - 1],
                     container.transform, false, item);
-            return;
         }
-
-        for (int i = 1; i < points.Count; i++)
-        {
-            SpawnSegment(item.finalPrefab, points[i - 1], points[i],
-                item, container.transform, false);
-        }
-
-        if (!item.snapToTerrain && item.generatePillars)
+        else
         {
             for (int i = 1; i < points.Count; i++)
             {
-                var (pos, _) = CalculateSegmentTransform(points[i - 1], points[i], item);
-                SpawnPillar(pos, container.transform, false, item);
+                SpawnSegment(item.finalPrefab, points[i - 1], points[i],
+                    item, container.transform, false);
+            }
+
+            if (!item.snapToTerrain && item.generatePillars)
+            {
+                for (int i = 1; i < points.Count; i++)
+                {
+                    var (pos, _) = CalculateSegmentTransform(points[i - 1], points[i], item);
+                    SpawnPillar(pos, container.transform, false, item);
+                }
             }
         }
+
+        // Регистрируем создание дороги в системе отмены / повтора
+        RoadBuilder.Core.History.UndoRedoManager.Instance.RegisterCommand(
+            new RoadBuilder.Core.History.SpawnObjectCommand(container, item.itemName));
+
+        return container;
     }
 
     public void SetGhostColor(Color color)
